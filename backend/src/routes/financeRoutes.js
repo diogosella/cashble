@@ -22,5 +22,17 @@ router.delete("/transactions/:transactionId", handle((req) => financeService.del
 router.post("/transfers", handle((req) => financeService.createTransfer(req.body)));
 router.post("/automations", handle((req) => financeService.createAutomation(req.body)));
 router.post("/automations/run", handle((req) => financeService.runMonthlyAutomations(req.body)));
+router.get(
+  "/cron/automations",
+  handle((req) => {
+    if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
+      const error = new Error("Unauthorized");
+      error.status = 401;
+      throw error;
+    }
+
+    return financeService.runMonthlyAutomations();
+  }),
+);
 
 module.exports = router;

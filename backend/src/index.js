@@ -8,7 +8,20 @@ const { startMonthlyAutomationScheduler } = require("./services/monthlyAutomatio
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000"].filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Origin not allowed"));
+    },
+  }),
+);
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -17,7 +30,20 @@ app.get("/", (req, res) => {
 
 app.use("/api", financeRoutes);
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-  startMonthlyAutomationScheduler();
+app.use((error, req, res, next) => {
+  if (error.message === "Origin not allowed") {
+    res.status(403).json({ message: error.message });
+    return;
+  }
+
+  next(error);
 });
+
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+    startMonthlyAutomationScheduler();
+  });
+}
+
+module.exports = app;
