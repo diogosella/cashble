@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://cashble-api.vercel.app/api/:path*"
+    }
+  ]
+}
