@@ -1,5 +1,5 @@
 import { Account, Transaction } from "../types";
-import { formatMoney } from "../utils/money";
+import { formatDateInput, formatMoney } from "../utils/money";
 
 type TransactionsTableProps = {
   accounts: Account[];
@@ -67,8 +67,8 @@ export function TransactionsTable({
         </div>
       ) : (
         <>
-          <div className="grid gap-3 md:hidden">
-            {transactions.slice(0, 12).map((transaction) => (
+          <div className="history-scrollbar grid max-h-[64dvh] gap-3 overflow-y-auto pr-1 md:hidden">
+            {transactions.map((transaction) => (
               <article className="surface-soft grid gap-3 p-3" key={transaction.id}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -84,7 +84,7 @@ export function TransactionsTable({
                 <div className="grid grid-cols-2 gap-3 border-t border-[#4c536d] pt-3 text-xs">
                   <div>
                     <span className="block uppercase text-muted">Data</span>
-                    <span className="mt-1 block">{new Date(transaction.date).toLocaleDateString("pt-BR")}</span>
+                    <span className="mt-1 block">{formatDateInput(transaction.date)}</span>
                   </div>
                   <div>
                     <span className="block uppercase text-muted">Saldo</span>
@@ -97,7 +97,7 @@ export function TransactionsTable({
             ))}
           </div>
 
-          <div className="hidden overflow-x-auto md:block">
+          <div className="history-scrollbar hidden max-h-[64dvh] overflow-auto md:block">
             <table className="min-w-[720px] w-full table-fixed border-collapse text-left text-sm">
             <colgroup>
               {hasActions ? (
@@ -119,7 +119,7 @@ export function TransactionsTable({
                 </>
               )}
             </colgroup>
-            <thead>
+            <thead className="sticky top-0 z-10 bg-[#2a2b43]">
               <tr className="border-b border-[#4c536d] text-xs uppercase text-muted">
                 <th className="py-3 pr-3">Data</th>
                 <th className="py-3 pr-3">Caixa</th>
@@ -130,9 +130,9 @@ export function TransactionsTable({
               </tr>
             </thead>
             <tbody>
-              {transactions.slice(0, 12).map((transaction) => (
+              {transactions.map((transaction) => (
                 <tr className="border-b border-[#4c536d] last:border-0" key={transaction.id}>
-                  <td className="truncate py-3 pr-3 text-muted">{new Date(transaction.date).toLocaleDateString("pt-BR")}</td>
+                  <td className="truncate py-3 pr-3 text-muted">{formatDateInput(transaction.date)}</td>
                   <td className="truncate py-3 pr-3">{getAccountName(transaction.accountId)}</td>
                   <td className="truncate py-3 pr-3 font-medium">{transaction.title}</td>
                   <td className={transaction.type === "expense" ? "truncate py-3 pr-3 font-semibold text-negative" : "truncate py-3 pr-3 font-semibold text-positive"}>

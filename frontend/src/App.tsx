@@ -15,6 +15,7 @@ import { TransactionForm } from "./components/TransactionForm";
 import { TransactionsTable } from "./components/TransactionsTable";
 import { TransferForm } from "./components/TransferForm";
 import { FinanceSummary, MonthlyHistory, Transaction } from "./types";
+import { currentMonthKey } from "./utils/money";
 
 type ActiveModal = "transaction" | "edit-transaction" | "delete-transaction" | "transfer" | "account" | "automation" | null;
 type ActiveView = "dashboard" | "history";
@@ -115,7 +116,7 @@ function FinanceApp() {
   }, [selectedAccount, summary]);
 
   const selectedSpentThisMonth = useMemo(() => {
-    const monthKey = new Date().toISOString().slice(0, 7);
+    const monthKey = currentMonthKey();
 
     return selectedTransactions
       .filter((transaction) => transaction.type === "expense" && transaction.date.slice(0, 7) === monthKey)

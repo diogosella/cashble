@@ -134,7 +134,7 @@ function summarize(state) {
       spentThisMonth: Math.round(spentThisMonth * 100) / 100,
     },
     accounts: state.accounts,
-    transactions: [...state.transactions].sort((a, b) => new Date(b.date) - new Date(a.date)),
+    transactions: [...state.transactions].sort((a, b) => b.date.localeCompare(a.date)),
     automations: state.automations,
   };
 }
@@ -199,7 +199,7 @@ async function getMonthlyHistory(auth) {
       income: Math.round(month.income * 100) / 100,
       expenses: Math.round(month.expenses * 100) / 100,
       accounts: Object.values(month.accounts).sort((a, b) => b.transactionCount - a.transactionCount),
-      transactions: month.transactions.sort((a, b) => new Date(b.date) - new Date(a.date)),
+      transactions: month.transactions.sort((a, b) => b.date.localeCompare(a.date)),
     }))
     .sort((a, b) => b.month.localeCompare(a.month));
 

@@ -158,4 +158,27 @@
     @apply h-4 w-4 animate-spin border-2;
     border-radius: 9999px !important;
   }
+
+  .history-scrollbar {
+    scrollbar-color: #71869f transparent;
+    scrollbar-width: thin;
+  }
+
+  .history-scrollbar::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  .history-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .history-scrollbar::-webkit-scrollbar-thumb {
+    background: #4c536d;
+    border: 2px solid var(--surface);
+  }
+
+  .history-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: #71869f;
+  }
 }

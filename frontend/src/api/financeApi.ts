@@ -1,5 +1,6 @@
 import { FinanceSummary, MonthlyHistory } from "../types";
 import { supabase } from "../lib/supabase";
+import { todayInputValue } from "../utils/money";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -116,7 +117,3 @@ export const financeApi = {
     });
   },
 };
-
-function todayInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
