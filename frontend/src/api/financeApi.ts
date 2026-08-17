@@ -1,4 +1,5 @@
 import { FinanceSummary, MonthlyHistory } from "../types";
+import { supabase } from "../lib/supabase";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -14,16 +15,33 @@ export type TransactionPayload = {
 };
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error("Authentication required");
+  }
+
   const response = await fetch(`${API_URL}${path}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+      ...options?.headers,
     },
-    ...options,
   });
 
-  const data = await response.json();
+  const contentType = response.headers.get("content-type") || "";
+  const data = contentType.includes("application/json")
+    ? await response.json()
+    : { message: await response.text() };
 
   if (!response.ok) {
+    if (response.status === 401) {
+      await supabase.auth.signOut();
+    }
+
     throw new Error(data.message || "Request failed");
   }
 

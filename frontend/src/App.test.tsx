@@ -1,7 +1,8 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import App from "./App";
 
-test("renders loading shell", () => {
-  const { container } = render(<App />);
-  expect(container.querySelector(".surface")).toBeInTheDocument();
+test("renders the authentication screen when there is no session", async () => {
+  render(<App />);
+
+  expect(await screen.findByRole("heading", { name: "Entrar na sua conta" })).toBeInTheDocument();
 });

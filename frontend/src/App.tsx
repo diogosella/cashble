@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
 import { financeApi } from "./api/financeApi";
+import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { AccountForm } from "./components/AccountForm";
 import { AccountTabs } from "./components/AccountTabs";
 import { AccountsPanel } from "./components/AccountsPanel";
 import { AutomationForm } from "./components/AutomationForm";
 import { AutomationsList } from "./components/AutomationsList";
+import { AuthScreen } from "./components/AuthScreen";
 import { Modal } from "./components/Modal";
 import { MonthlyHistoryScreen } from "./components/MonthlyHistoryScreen";
 import { SummaryPanel } from "./components/SummaryPanel";
@@ -17,7 +19,8 @@ import { FinanceSummary, MonthlyHistory, Transaction } from "./types";
 type ActiveModal = "transaction" | "edit-transaction" | "delete-transaction" | "transfer" | "account" | "automation" | null;
 type ActiveView = "dashboard" | "history";
 
-function App() {
+function FinanceApp() {
+  const { signOut, user } = useAuth();
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
   const [monthlyHistory, setMonthlyHistory] = useState<MonthlyHistory | null>(null);
   const [activeAccountId, setActiveAccountId] = useState("general");
@@ -135,6 +138,7 @@ function App() {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <span className="hidden items-center px-2 text-sm text-muted md:flex">{user?.email}</span>
           <button
             className={activeView === "dashboard" ? "btn-primary" : "btn-secondary"}
             onClick={() => setActiveView("dashboard")}
@@ -151,6 +155,9 @@ function App() {
           </button>
           <button className="btn-secondary" onClick={loadSummary} type="button">
             Atualizar
+          </button>
+          <button className="btn-secondary" onClick={() => void signOut()} type="button">
+            Sair
           </button>
         </div>
       </header>
@@ -284,6 +291,32 @@ function App() {
         />
       </Modal>
     </main>
+  );
+}
+
+function AppContent() {
+  const { isLoading, session } = useAuth();
+
+  if (isLoading) {
+    return (
+      <main className="mx-auto grid min-h-dvh max-w-6xl place-items-center p-6">
+        <div className="surface w-full max-w-md p-6">
+          <div className="skeleton h-3 w-28" />
+          <div className="skeleton mt-5 h-12" />
+          <div className="skeleton mt-3 h-24" />
+        </div>
+      </main>
+    );
+  }
+
+  return session ? <FinanceApp /> : <AuthScreen />;
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
