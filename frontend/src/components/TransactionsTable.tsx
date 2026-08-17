@@ -60,7 +60,7 @@ export function TransactionsTable({
               )}
             </colgroup>
             <thead>
-              <tr className="border-b border-[#9ac9d6]/25 text-xs uppercase text-muted">
+              <tr className="border-b border-[#4c536d] text-xs uppercase text-muted">
                 <th className="py-3 pr-3">Data</th>
                 <th className="py-3 pr-3">Caixa</th>
                 <th className="py-3 pr-3">Descricao</th>
@@ -71,7 +71,7 @@ export function TransactionsTable({
             </thead>
             <tbody>
               {transactions.slice(0, 12).map((transaction) => (
-                <tr className="border-b border-[#8493b3]/20 last:border-0" key={transaction.id}>
+                <tr className="border-b border-[#4c536d] last:border-0" key={transaction.id}>
                   <td className="truncate py-3 pr-3 text-muted">{new Date(transaction.date).toLocaleDateString("pt-BR")}</td>
                   <td className="truncate py-3 pr-3">{getAccountName(transaction.accountId)}</td>
                   <td className="truncate py-3 pr-3 font-medium">{transaction.title}</td>
@@ -85,7 +85,7 @@ export function TransactionsTable({
                       <div className="flex justify-end gap-2">
                         {onEditTransaction ? (
                           <button
-                            className="btn-quiet border border-[#9ac9d6]/20 px-3 py-1"
+                            className="btn-quiet border border-[#4c536d] px-3 py-1"
                             onClick={() => onEditTransaction(transaction)}
                             type="button"
                           >
@@ -94,7 +94,7 @@ export function TransactionsTable({
                         ) : null}
                         {onDeleteTransaction ? (
                           <button
-                            className="border border-[#d8a2a2]/35 px-3 py-1 text-sm font-semibold text-negative hover:bg-[#3a2d3d]"
+                            className="border border-[#d8a2a2] px-3 py-1 text-sm font-semibold text-negative hover:bg-[#3a2d3d]"
                             onClick={() => onDeleteTransaction(transaction)}
                             type="button"
                           >

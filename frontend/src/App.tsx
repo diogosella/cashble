@@ -123,7 +123,7 @@ function FinanceApp() {
   if (!summary || !selectedAccount) {
     return (
       <main className="mx-auto max-w-6xl p-6">
-        <p className="border border-[#d8a2a2]/40 bg-[#3a2d3d] p-4 text-negative">
+        <p className="border border-[#d8a2a2] bg-[#3a2d3d] p-4 text-negative">
           {error || "Nao foi possivel conectar ao backend"}
         </p>
       </main>
@@ -162,7 +162,7 @@ function FinanceApp() {
         </div>
       </header>
 
-      {error ? <p className="border border-[#d8a2a2]/40 bg-[#3a2d3d] p-3 text-sm text-negative">{error}</p> : null}
+      {error ? <p className="border border-[#d8a2a2] bg-[#3a2d3d] p-3 text-sm text-negative">{error}</p> : null}
 
       {activeView === "history" ? (
         monthlyHistory ? (
@@ -260,7 +260,7 @@ function FinanceApp() {
                 Cancelar
               </button>
               <button
-                className="h-11 border border-[#d8a2a2]/35 px-4 py-2 text-sm font-semibold text-negative hover:bg-[#3a2d3d]"
+                className="h-11 border border-[#d8a2a2] px-4 py-2 text-sm font-semibold text-negative hover:bg-[#3a2d3d]"
                 onClick={() => applyAction(() => financeApi.deleteTransaction(selectedTransaction.id))}
                 type="button"
               >

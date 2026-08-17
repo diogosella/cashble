@@ -66,7 +66,7 @@ export function MonthlyHistoryScreen({ accounts, history, onRefresh }: MonthlyHi
               <button
                 className={
                   isActive
-                    ? "bg-[#8493b3] p-4 text-left font-semibold text-[#202136] shadow-[0_12px_30px_rgba(132,147,179,0.18)]"
+                    ? "bg-[#8493b3] p-4 text-left font-semibold text-[#202136]"
                     : "surface-soft p-4 text-left hover:bg-[#33334b]"
                 }
                 key={month.month}
@@ -74,7 +74,7 @@ export function MonthlyHistoryScreen({ accounts, history, onRefresh }: MonthlyHi
                 type="button"
               >
                 <span className="block text-sm font-semibold capitalize">{formatMonth(month.month)}</span>
-                <span className={isActive ? "mt-1 block text-xs text-[#202136]/75" : "mt-1 block text-xs text-muted"}>
+                <span className={isActive ? "mt-1 block text-xs text-[#33334b]" : "mt-1 block text-xs text-muted"}>
                   {month.transactionCount} registros
                 </span>
               </button>
