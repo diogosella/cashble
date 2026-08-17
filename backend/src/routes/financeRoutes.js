@@ -1,4 +1,5 @@
 const express = require("express");
+const requireAuth = require("../middleware/requireAuth");
 const financeService = require("../services/financeService");
 
 const router = express.Router();
@@ -13,26 +14,16 @@ function handle(handler) {
   };
 }
 
-router.get("/summary", handle(() => financeService.getSummary()));
-router.get("/history/months", handle(() => financeService.getMonthlyHistory()));
-router.post("/accounts", handle((req) => financeService.createAccount(req.body)));
-router.post("/transactions", handle((req) => financeService.createTransaction(req.body)));
-router.put("/transactions/:transactionId", handle((req) => financeService.updateTransaction(req.params.transactionId, req.body)));
-router.delete("/transactions/:transactionId", handle((req) => financeService.deleteTransaction(req.params.transactionId)));
-router.post("/transfers", handle((req) => financeService.createTransfer(req.body)));
-router.post("/automations", handle((req) => financeService.createAutomation(req.body)));
-router.post("/automations/run", handle((req) => financeService.runMonthlyAutomations(req.body)));
-router.get(
-  "/cron/automations",
-  handle((req) => {
-    if (!process.env.CRON_SECRET || req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
-      const error = new Error("Unauthorized");
-      error.status = 401;
-      throw error;
-    }
+router.use(requireAuth);
 
-    return financeService.runMonthlyAutomations();
-  }),
-);
+router.get("/summary", handle((req) => financeService.getSummary(req.auth)));
+router.get("/history/months", handle((req) => financeService.getMonthlyHistory(req.auth)));
+router.post("/accounts", handle((req) => financeService.createAccount(req.auth, req.body)));
+router.post("/transactions", handle((req) => financeService.createTransaction(req.auth, req.body)));
+router.put("/transactions/:transactionId", handle((req) => financeService.updateTransaction(req.auth, req.params.transactionId, req.body)));
+router.delete("/transactions/:transactionId", handle((req) => financeService.deleteTransaction(req.auth, req.params.transactionId)));
+router.post("/transfers", handle((req) => financeService.createTransfer(req.auth, req.body)));
+router.post("/automations", handle((req) => financeService.createAutomation(req.auth, req.body)));
+router.post("/automations/run", handle((req) => financeService.runMonthlyAutomations(req.auth, req.body)));
 
 module.exports = router;

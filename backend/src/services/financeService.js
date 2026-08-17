@@ -139,12 +139,12 @@ function summarize(state) {
   };
 }
 
-async function getSummary() {
-  return summarize(await readState());
+async function getSummary(auth) {
+  return runMonthlyAutomations(auth);
 }
 
-async function getMonthlyHistory() {
-  const state = await readState();
+async function getMonthlyHistory(auth) {
+  const state = await readState(auth);
   const currentMonthKey = getMonthKey(new Date());
   const monthsByKey = {};
 
@@ -209,8 +209,8 @@ async function getMonthlyHistory() {
   };
 }
 
-async function createAccount(input) {
-  const state = await readState();
+async function createAccount(auth, input) {
+  const state = await readState(auth);
   const balance = input.balance ? toAmount(input.balance) : 0;
   const target = input.target ? toAmount(input.target) : null;
   const monthlyContribution = input.monthlyContribution ? toAmount(input.monthlyContribution) : 0;
@@ -231,11 +231,11 @@ async function createAccount(input) {
   }
 
   state.accounts.push(account);
-  return summarize(await writeState(state));
+  return summarize(await writeState(auth, state));
 }
 
-async function createTransaction(input) {
-  const state = await readState();
+async function createTransaction(auth, input) {
+  const state = await readState(auth);
   const baseBalances = getBaseBalances(state);
   const account = getAccount(state, input.accountId);
   const amount = toAmount(input.amount);
@@ -252,11 +252,11 @@ async function createTransaction(input) {
   });
 
   recalculateBalances(state, baseBalances);
-  return summarize(await writeState(state));
+  return summarize(await writeState(auth, state));
 }
 
-async function updateTransaction(transactionId, input) {
-  const state = await readState();
+async function updateTransaction(auth, transactionId, input) {
+  const state = await readState(auth);
   const baseBalances = getBaseBalances(state);
   const transactionIndex = getTransactionIndex(state, transactionId);
   const currentTransaction = state.transactions[transactionIndex];
@@ -274,21 +274,21 @@ async function updateTransaction(transactionId, input) {
   };
 
   recalculateBalances(state, baseBalances);
-  return summarize(await writeState(state));
+  return summarize(await writeState(auth, state));
 }
 
-async function deleteTransaction(transactionId) {
-  const state = await readState();
+async function deleteTransaction(auth, transactionId) {
+  const state = await readState(auth);
   const baseBalances = getBaseBalances(state);
   const transactionIndex = getTransactionIndex(state, transactionId);
 
   state.transactions.splice(transactionIndex, 1);
   recalculateBalances(state, baseBalances);
-  return summarize(await writeState(state));
+  return summarize(await writeState(auth, state));
 }
 
-async function createTransfer(input) {
-  const state = await readState();
+async function createTransfer(auth, input) {
+  const state = await readState(auth);
   const fromAccount = getAccount(state, input.fromAccountId);
   const toAccount = getAccount(state, input.toAccountId);
   const amount = toAmount(input.amount);
@@ -330,11 +330,11 @@ async function createTransfer(input) {
     remainingBalance: toAccount.balance,
   });
 
-  return summarize(await writeState(state));
+  return summarize(await writeState(auth, state));
 }
 
-async function createAutomation(input) {
-  const state = await readState();
+async function createAutomation(auth, input) {
+  const state = await readState(auth);
   const kind = input.kind === "saving" ? "saving" : "expense";
   const automation = {
     id: createId("auto"),
@@ -361,11 +361,11 @@ async function createAutomation(input) {
   }
 
   state.automations.push(automation);
-  return summarize(await writeState(state));
+  return summarize(await writeState(auth, state));
 }
 
-async function runMonthlyAutomations(input = {}) {
-  const state = await readState();
+async function runMonthlyAutomations(auth, input = {}) {
+  const state = await readState(auth);
   const date = input.date || getLocalDateInput();
   const day = getDayOfMonth(date);
   const monthKey = getMonthKey(date);
@@ -441,7 +441,7 @@ async function runMonthlyAutomations(input = {}) {
   });
 
   return {
-    ...summarize(await writeState(state)),
+    ...summarize(await writeState(auth, state)),
     automationRun: { applied, skipped },
   };
 }

@@ -3,7 +3,6 @@ const path = require("path");
 const defaultState = require("./defaultState");
 
 const dataDir = path.join(__dirname, "..", "..", "data");
-const dataFile = path.join(dataDir, "cashble.json");
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -11,30 +10,47 @@ function clone(value) {
 
 function getSupabaseConfig() {
   const url = process.env.SUPABASE_URL ? process.env.SUPABASE_URL.trim().replace(/\/$/, "") : "";
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  const stateId = process.env.SUPABASE_STATE_ID || "main";
+  const anonKey = process.env.SUPABASE_ANON_KEY || "";
   const restUrl = url.endsWith("/rest/v1") ? url : `${url}/rest/v1`;
 
   return {
-    isConfigured: Boolean(url && serviceRoleKey),
+    isConfigured: Boolean(url && anonKey),
+    anonKey,
     restUrl,
-    serviceRoleKey,
-    stateId,
-    url,
   };
 }
 
-function getSupabaseHeaders() {
-  const { serviceRoleKey } = getSupabaseConfig();
+function validateAuth(auth) {
+  if (!auth?.userId || !auth?.accessToken) {
+    const error = new Error("Authenticated user context is required");
+    error.status = 401;
+    throw error;
+  }
+}
+
+function getSupabaseHeaders(auth) {
+  validateAuth(auth);
 
   return {
-    apikey: serviceRoleKey,
-    Authorization: `Bearer ${serviceRoleKey}`,
+    apikey: getSupabaseConfig().anonKey,
+    Authorization: `Bearer ${auth.accessToken}`,
     "Content-Type": "application/json",
   };
 }
 
-function ensureLocalDataFile() {
+function getLocalDataFile(auth) {
+  validateAuth(auth);
+
+  if (!/^[0-9a-f-]{36}$/i.test(auth.userId)) {
+    throw new Error("Invalid authenticated user id");
+  }
+
+  return path.join(dataDir, `cashble-${auth.userId}.json`);
+}
+
+function ensureLocalDataFile(auth) {
+  const dataFile = getLocalDataFile(auth);
+
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
@@ -42,23 +58,24 @@ function ensureLocalDataFile() {
   if (!fs.existsSync(dataFile)) {
     fs.writeFileSync(dataFile, JSON.stringify(defaultState, null, 2));
   }
+
+  return dataFile;
 }
 
-function readLocalState() {
-  ensureLocalDataFile();
-  return JSON.parse(fs.readFileSync(dataFile, "utf8"));
+function readLocalState(auth) {
+  return JSON.parse(fs.readFileSync(ensureLocalDataFile(auth), "utf8"));
 }
 
-function writeLocalState(state) {
-  ensureLocalDataFile();
-  fs.writeFileSync(dataFile, JSON.stringify(state, null, 2));
+function writeLocalState(auth, state) {
+  fs.writeFileSync(ensureLocalDataFile(auth), JSON.stringify(state, null, 2));
   return clone(state);
 }
 
-async function readRemoteState() {
-  const { restUrl, stateId } = getSupabaseConfig();
-  const response = await fetch(`${restUrl}/cashble_state?id=eq.${encodeURIComponent(stateId)}&select=data`, {
-    headers: getSupabaseHeaders(),
+async function readRemoteState(auth) {
+  validateAuth(auth);
+  const { restUrl } = getSupabaseConfig();
+  const response = await fetch(`${restUrl}/cashble_state?id=eq.${encodeURIComponent(auth.userId)}&select=data`, {
+    headers: getSupabaseHeaders(auth),
   });
 
   if (!response.ok) {
@@ -68,22 +85,23 @@ async function readRemoteState() {
   const rows = await response.json();
 
   if (!rows.length) {
-    return writeRemoteState(defaultState);
+    return writeRemoteState(auth, defaultState);
   }
 
   return clone(rows[0].data);
 }
 
-async function writeRemoteState(state) {
-  const { restUrl, stateId } = getSupabaseConfig();
+async function writeRemoteState(auth, state) {
+  validateAuth(auth);
+  const { restUrl } = getSupabaseConfig();
   const response = await fetch(`${restUrl}/cashble_state?on_conflict=id`, {
     method: "POST",
     headers: {
-      ...getSupabaseHeaders(),
+      ...getSupabaseHeaders(auth),
       Prefer: "resolution=merge-duplicates,return=representation",
     },
     body: JSON.stringify({
-      id: stateId,
+      id: auth.userId,
       data: state,
     }),
   });
@@ -96,20 +114,20 @@ async function writeRemoteState(state) {
   return clone(rows[0]?.data || state);
 }
 
-async function readState() {
+async function readState(auth) {
   if (getSupabaseConfig().isConfigured) {
-    return readRemoteState();
+    return readRemoteState(auth);
   }
 
-  return readLocalState();
+  return readLocalState(auth);
 }
 
-async function writeState(state) {
+async function writeState(auth, state) {
   if (getSupabaseConfig().isConfigured) {
-    return writeRemoteState(state);
+    return writeRemoteState(auth, state);
   }
 
-  return writeLocalState(state);
+  return writeLocalState(auth, state);
 }
 
 module.exports = {

@@ -3,7 +3,6 @@ require("./config/loadEnv")();
 const cors = require("cors");
 const express = require("express");
 const financeRoutes = require("./routes/financeRoutes");
-const { startMonthlyAutomationScheduler } = require("./services/monthlyAutomationScheduler");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -42,7 +41,6 @@ app.use((error, req, res, next) => {
 if (!process.env.VERCEL) {
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-    startMonthlyAutomationScheduler();
   });
 }
 
