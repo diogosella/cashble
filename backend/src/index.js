@@ -7,12 +7,33 @@ const financeRoutes = require("./routes/financeRoutes");
 const app = express();
 const port = process.env.PORT || 5000;
 
-const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000"].filter(Boolean);
+function parseOrigins(value) {
+  return (value || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+function normalizeOrigin(origin) {
+  return origin ? origin.replace(/\/$/, "") : origin;
+}
+
+const allowedOrigins = new Set(
+  [
+    "http://localhost:3000",
+    "https://cashble.vercel.app",
+    process.env.FRONTEND_URL,
+    ...parseOrigins(process.env.FRONTEND_URLS),
+    ...parseOrigins(process.env.ALLOWED_ORIGINS),
+  ]
+    .map(normalizeOrigin)
+    .filter(Boolean),
+);
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.has(normalizeOrigin(origin))) {
         callback(null, true);
         return;
       }
