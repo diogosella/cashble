@@ -44,6 +44,7 @@ export function SummaryPanel({
 }: SummaryPanelProps) {
   const progress = selectedAccount.target ? Math.min((selectedAccount.balance / selectedAccount.target) * 100, 100) : 0;
   const displayedBalance = areValuesVisible ? formatMoney(selectedAccount.balance) : "******";
+  const displayedSpentThisMonth = areValuesVisible ? formatMoney(selectedSpentThisMonth) : "******";
 
   return (
     <section className="summary-hero min-w-0 p-6">
@@ -68,7 +69,7 @@ export function SummaryPanel({
 
         <div className="w-full md:text-right">
           <p className="text-sm font-semibold text-muted">{new Date().toLocaleDateString("pt-BR")}</p>
-          <p className="mt-3 text-2xl font-semibold">{formatMoney(selectedSpentThisMonth)}</p>
+          <p className="mt-3 text-2xl font-semibold">{displayedSpentThisMonth}</p>
           <p className="mt-1 text-sm text-muted">Gasto neste mes</p>
         </div>
 

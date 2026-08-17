@@ -21,7 +21,7 @@ type ActiveModal = "transaction" | "edit-transaction" | "delete-transaction" | "
 type ActiveView = "dashboard" | "history";
 
 function FinanceApp() {
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
   const [summary, setSummary] = useState<FinanceSummary | null>(null);
   const [monthlyHistory, setMonthlyHistory] = useState<MonthlyHistory | null>(null);
   const [activeAccountId, setActiveAccountId] = useState("general");
@@ -163,7 +163,6 @@ function FinanceApp() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <span className="hidden items-center px-2 text-sm text-muted md:flex">{user?.email}</span>
           <button
             className={activeView === "dashboard" ? "btn-primary" : "btn-secondary"}
             onClick={() => setActiveView("dashboard")}
@@ -193,6 +192,7 @@ function FinanceApp() {
         monthlyHistory ? (
           <MonthlyHistoryScreen
             accounts={summary.accounts}
+            areValuesVisible={areValuesVisible}
             history={monthlyHistory}
             onRefresh={loadMonthlyHistory}
           />
@@ -226,6 +226,7 @@ function FinanceApp() {
           <section className="grid w-full gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
             <TransactionsTable
               accounts={summary.accounts}
+              areValuesVisible={areValuesVisible}
               title={`Historico de ${selectedAccount.name}`}
               transactions={selectedTransactions}
               onEditTransaction={(transaction) => {

@@ -5,6 +5,7 @@ import { TransactionsTable } from "./TransactionsTable";
 
 type MonthlyHistoryScreenProps = {
   accounts: Account[];
+  areValuesVisible: boolean;
   history: MonthlyHistory;
   onRefresh: () => Promise<void>;
 };
@@ -18,7 +19,7 @@ function formatMonth(month: string) {
   }).format(date);
 }
 
-export function MonthlyHistoryScreen({ accounts, history, onRefresh }: MonthlyHistoryScreenProps) {
+export function MonthlyHistoryScreen({ accounts, areValuesVisible, history, onRefresh }: MonthlyHistoryScreenProps) {
   const [activeMonth, setActiveMonth] = useState(history.months[0]?.month || "");
   const selectedMonth = useMemo(() => {
     return history.months.find((month) => month.month === activeMonth) || history.months[0] || null;
@@ -130,6 +131,7 @@ export function MonthlyHistoryScreen({ accounts, history, onRefresh }: MonthlyHi
 
         <TransactionsTable
           accounts={accounts}
+          areValuesVisible={areValuesVisible}
           title={`Movimentacoes de ${formatMonth(selectedMonth.month)}`}
           transactions={selectedMonth.transactions}
         />

@@ -5,6 +5,7 @@ type TransactionsTableProps = {
   accounts: Account[];
   transactions: Transaction[];
   title?: string;
+  areValuesVisible?: boolean;
   onEditTransaction?: (transaction: Transaction) => void;
   onDeleteTransaction?: (transaction: Transaction) => void;
 };
@@ -13,6 +14,7 @@ export function TransactionsTable({
   accounts,
   transactions,
   title = "Historico do mes",
+  areValuesVisible = true,
   onEditTransaction,
   onDeleteTransaction,
 }: TransactionsTableProps) {
@@ -20,6 +22,10 @@ export function TransactionsTable({
 
   function getAccountName(accountId: string) {
     return accounts.find((account) => account.id === accountId)?.name || "Caixa";
+  }
+
+  function renderPrivateMoney(value: number) {
+    return areValuesVisible ? formatMoney(value) : "******";
   }
 
   function renderActions(transaction: Transaction) {
@@ -88,7 +94,7 @@ export function TransactionsTable({
                   </div>
                   <div>
                     <span className="block uppercase text-muted">Saldo</span>
-                    <span className="mt-1 block">{formatMoney(transaction.remainingBalance)}</span>
+                    <span className="mt-1 block">{renderPrivateMoney(transaction.remainingBalance)}</span>
                   </div>
                 </div>
 
@@ -139,7 +145,7 @@ export function TransactionsTable({
                     {transaction.type === "expense" ? "-" : "+"}
                     {formatMoney(transaction.amount)}
                   </td>
-                  <td className="truncate py-3 pr-3">{formatMoney(transaction.remainingBalance)}</td>
+                  <td className="truncate py-3 pr-3">{renderPrivateMoney(transaction.remainingBalance)}</td>
                   {hasActions ? (
                     <td className="py-3 pr-3">
                       {renderActions(transaction)}
