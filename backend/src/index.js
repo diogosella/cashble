@@ -56,7 +56,7 @@ app.use((error, req, res, next) => {
     return;
   }
 
-  next(error);
+  res.status(error.status || 500).json({ message: error.message || "Internal server error" });
 });
 
 if (!process.env.VERCEL) {

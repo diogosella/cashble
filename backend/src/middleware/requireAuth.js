@@ -22,12 +22,19 @@ async function requireAuth(req, res, next) {
     }
 
     const { url, anonKey } = getAuthConfig();
-    const response = await fetch(`${url}/auth/v1/user`, {
-      headers: {
-        apikey: anonKey,
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    let response;
+
+    try {
+      response = await fetch(`${url}/auth/v1/user`, {
+        headers: {
+          apikey: anonKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    } catch (error) {
+      res.status(503).json({ message: "Authentication service unavailable" });
+      return;
+    }
 
     if (!response.ok) {
       res.status(401).json({ message: "Invalid or expired session" });

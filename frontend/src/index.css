@@ -153,4 +153,9 @@
   .modal-input-grid {
     @apply grid gap-3;
   }
+
+  .loading-spinner {
+    @apply h-4 w-4 animate-spin border-2;
+    border-radius: 9999px !important;
+  }
 }

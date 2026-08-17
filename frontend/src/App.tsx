@@ -29,6 +29,8 @@ function FinanceApp() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [areValuesVisible, setAreValuesVisible] = useState(false);
   const [error, setError] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [isDeleteSubmitting, setIsDeleteSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadSummary = useCallback(async () => {
@@ -56,7 +58,7 @@ function FinanceApp() {
     }
   }, []);
 
-  async function applyAction(action: () => Promise<FinanceSummary>) {
+  async function applyAction(action: () => Promise<FinanceSummary>, options?: { throwOnError?: boolean }) {
     try {
       setError("");
       setSummary(await action());
@@ -64,7 +66,29 @@ function FinanceApp() {
       setActiveModal(null);
       setSelectedTransaction(null);
     } catch (currentError) {
-      setError(currentError instanceof Error ? currentError.message : "Nao foi possivel salvar");
+      const message = currentError instanceof Error ? currentError.message : "Nao foi possivel salvar";
+
+      setError(message);
+
+      if (options?.throwOnError) {
+        throw new Error(message);
+      }
+    }
+  }
+
+  async function deleteSelectedTransaction(transaction: Transaction) {
+    if (isDeleteSubmitting) {
+      return;
+    }
+
+    try {
+      setDeleteError("");
+      setIsDeleteSubmitting(true);
+      await applyAction(() => financeApi.deleteTransaction(transaction.id), { throwOnError: true });
+    } catch (currentError) {
+      setDeleteError(currentError instanceof Error ? currentError.message : "Nao foi possivel excluir a movimentacao");
+    } finally {
+      setIsDeleteSubmitting(false);
     }
   }
 
@@ -208,6 +232,7 @@ function FinanceApp() {
                 setActiveModal("edit-transaction");
               }}
               onDeleteTransaction={(transaction) => {
+                setDeleteError("");
                 setSelectedTransaction(transaction);
                 setActiveModal("delete-transaction");
               }}
@@ -233,7 +258,7 @@ function FinanceApp() {
       <Modal isOpen={activeModal === "transaction"} onClose={() => setActiveModal(null)} title="Adicionar movimentacao">
         <TransactionForm
           selectedAccount={selectedAccount}
-          onSubmitTransaction={(payload) => applyAction(() => financeApi.createTransaction(payload))}
+          onSubmitTransaction={(payload) => applyAction(() => financeApi.createTransaction(payload), { throwOnError: true })}
         />
       </Modal>
 
@@ -243,7 +268,9 @@ function FinanceApp() {
             initialTransaction={selectedTransaction}
             selectedAccount={selectedAccount}
             submitLabel="Salvar alteracoes"
-            onSubmitTransaction={(payload) => applyAction(() => financeApi.updateTransaction(selectedTransaction.id, payload))}
+            onSubmitTransaction={(payload) =>
+              applyAction(() => financeApi.updateTransaction(selectedTransaction.id, payload), { throwOnError: true })
+            }
           />
         ) : null}
       </Modal>
@@ -255,16 +282,29 @@ function FinanceApp() {
               <p className="text-sm text-muted">Esta acao remove a movimentacao e recalcula o saldo da caixa.</p>
               <strong className="mt-3 block">{selectedTransaction.title}</strong>
             </div>
+            {deleteError ? (
+              <p className="border border-[#d8a2a2] bg-[#3a2d3d] p-3 text-sm text-negative" role="alert">
+                {deleteError}
+              </p>
+            ) : null}
             <div className="grid gap-2 sm:grid-cols-2">
-              <button className="btn-secondary h-11" onClick={() => setActiveModal(null)} type="button">
+              <button className="btn-secondary h-11 disabled:cursor-wait disabled:opacity-70" disabled={isDeleteSubmitting} onClick={() => setActiveModal(null)} type="button">
                 Cancelar
               </button>
               <button
-                className="h-11 border border-[#d8a2a2] px-4 py-2 text-sm font-semibold text-negative hover:bg-[#3a2d3d]"
-                onClick={() => applyAction(() => financeApi.deleteTransaction(selectedTransaction.id))}
+                className="flex h-11 items-center justify-center gap-2 border border-[#d8a2a2] px-4 py-2 text-sm font-semibold text-negative hover:bg-[#3a2d3d] disabled:cursor-wait disabled:opacity-70"
+                disabled={isDeleteSubmitting}
+                onClick={() => deleteSelectedTransaction(selectedTransaction)}
                 type="button"
               >
-                Excluir movimentacao
+                {isDeleteSubmitting ? (
+                  <>
+                    <span className="loading-spinner border-[#d8a2a2] border-t-transparent" />
+                    Excluindo...
+                  </>
+                ) : (
+                  "Excluir movimentacao"
+                )}
               </button>
             </div>
           </div>
@@ -275,19 +315,19 @@ function FinanceApp() {
         <TransferForm
           accounts={summary.accounts}
           selectedAccount={selectedAccount}
-          onCreateTransfer={(payload) => applyAction(() => financeApi.createTransfer(payload))}
+          onCreateTransfer={(payload) => applyAction(() => financeApi.createTransfer(payload), { throwOnError: true })}
         />
       </Modal>
 
       <Modal isOpen={activeModal === "account"} onClose={() => setActiveModal(null)} title="Criar caixa">
-        <AccountForm onCreateAccount={(payload) => applyAction(() => financeApi.createAccount(payload))} />
+        <AccountForm onCreateAccount={(payload) => applyAction(() => financeApi.createAccount(payload), { throwOnError: true })} />
       </Modal>
 
       <Modal isOpen={activeModal === "automation"} onClose={() => setActiveModal(null)} title="Criar automacao">
         <AutomationForm
           accounts={summary.accounts}
           selectedAccount={selectedAccount}
-          onCreateAutomation={(payload) => applyAction(() => financeApi.createAutomation(payload))}
+          onCreateAutomation={(payload) => applyAction(() => financeApi.createAutomation(payload), { throwOnError: true })}
         />
       </Modal>
     </main>

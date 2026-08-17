@@ -22,13 +22,42 @@ export function TransactionsTable({
     return accounts.find((account) => account.id === accountId)?.name || "Caixa";
   }
 
+  function renderActions(transaction: Transaction) {
+    if (!hasActions) {
+      return null;
+    }
+
+    return (
+      <div className="flex flex-wrap justify-end gap-2">
+        {onEditTransaction ? (
+          <button
+            className="btn-quiet min-h-9 border border-[#4c536d] px-3 py-1"
+            onClick={() => onEditTransaction(transaction)}
+            type="button"
+          >
+            Editar
+          </button>
+        ) : null}
+        {onDeleteTransaction ? (
+          <button
+            className="min-h-9 border border-[#d8a2a2] px-3 py-1 text-sm font-semibold text-negative hover:bg-[#3a2d3d]"
+            onClick={() => onDeleteTransaction(transaction)}
+            type="button"
+          >
+            Excluir
+          </button>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <section className="surface min-w-0 p-4">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div>
+      <div className="mb-4 grid gap-3 sm:flex sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h2 className="mt-1 text-lg font-semibold">{title}</h2>
         </div>
-        <span className="badge px-3 py-1 text-sm">{transactions.length} registros</span>
+        <span className="badge w-fit px-3 py-1 text-sm">{transactions.length} registros</span>
       </div>
 
       {transactions.length === 0 ? (
@@ -37,8 +66,39 @@ export function TransactionsTable({
           <p className="mt-1 text-sm text-muted">Use o botao de adicionar movimentacao para registrar o primeiro item.</p>
         </div>
       ) : (
-        <div className="overflow-hidden">
-          <table className="w-full table-fixed border-collapse text-left text-sm">
+        <>
+          <div className="grid gap-3 md:hidden">
+            {transactions.slice(0, 12).map((transaction) => (
+              <article className="surface-soft grid gap-3 p-3" key={transaction.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <strong className="block truncate">{transaction.title}</strong>
+                    <span className="mt-1 block truncate text-xs text-muted">{getAccountName(transaction.accountId)}</span>
+                  </div>
+                  <strong className={transaction.type === "expense" ? "shrink-0 text-sm text-negative" : "shrink-0 text-sm text-positive"}>
+                    {transaction.type === "expense" ? "-" : "+"}
+                    {formatMoney(transaction.amount)}
+                  </strong>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 border-t border-[#4c536d] pt-3 text-xs">
+                  <div>
+                    <span className="block uppercase text-muted">Data</span>
+                    <span className="mt-1 block">{new Date(transaction.date).toLocaleDateString("pt-BR")}</span>
+                  </div>
+                  <div>
+                    <span className="block uppercase text-muted">Saldo</span>
+                    <span className="mt-1 block">{formatMoney(transaction.remainingBalance)}</span>
+                  </div>
+                </div>
+
+                {hasActions ? <div className="border-t border-[#4c536d] pt-3">{renderActions(transaction)}</div> : null}
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
+            <table className="min-w-[720px] w-full table-fixed border-collapse text-left text-sm">
             <colgroup>
               {hasActions ? (
                 <>
@@ -82,33 +142,15 @@ export function TransactionsTable({
                   <td className="truncate py-3 pr-3">{formatMoney(transaction.remainingBalance)}</td>
                   {hasActions ? (
                     <td className="py-3 pr-3">
-                      <div className="flex justify-end gap-2">
-                        {onEditTransaction ? (
-                          <button
-                            className="btn-quiet border border-[#4c536d] px-3 py-1"
-                            onClick={() => onEditTransaction(transaction)}
-                            type="button"
-                          >
-                            Editar
-                          </button>
-                        ) : null}
-                        {onDeleteTransaction ? (
-                          <button
-                            className="border border-[#d8a2a2] px-3 py-1 text-sm font-semibold text-negative hover:bg-[#3a2d3d]"
-                            onClick={() => onDeleteTransaction(transaction)}
-                            type="button"
-                          >
-                            Excluir
-                          </button>
-                        ) : null}
-                      </div>
+                      {renderActions(transaction)}
                     </td>
                   ) : null}
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
+            </table>
+          </div>
+        </>
       )}
     </section>
   );
