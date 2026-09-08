@@ -1,5 +1,5 @@
 const CACHE_NAME = "cashble-app-v1";
-const APP_SHELL = ["/", "/manifest.json", "/favicon.ico", "/logo192.png", "/logo512.png"];
+const APP_SHELL = ["/", "/manifest.json", "/favicon.png", "/logo192.png", "/logo512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
